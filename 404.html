@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - 页面未找到</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: 
+                linear-gradient(rgba(10, 15, 30, 0.85), rgba(10, 15, 30, 0.9)),
+                url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #e0f0ff;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        /* 清晰的404数字样式 */
+        .error-code {
+            font-size: 15rem;
+            font-weight: 900;
+            color: #6cd9ff;
+            margin-bottom: 10px;
+            text-shadow: 
+                0 5px 15px rgba(108, 217, 255, 0.5),
+                0 0 30px rgba(108, 217, 255, 0.3);
+            line-height: 1;
+            position: relative;
+            display: inline-block;
+            letter-spacing: 5px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+        
+        /* 每个数字单独动画 */
+        .error-code span {
+            display: inline-block;
+            animation: float 4s ease-in-out infinite;
+            text-shadow: 0 0 20px currentColor;
+        }
+        
+        .error-code span:nth-child(1) { 
+            animation-delay: 0s; 
+            color: #4cc9f0;
+        }
+        .error-code span:nth-child(2) { 
+            animation-delay: 0.2s; 
+            color: #4361ee;
+        }
+        .error-code span:nth-child(3) { 
+            animation-delay: 0.4s; 
+            color: #7209b7;
+        }
+        
+        /* 错误信息 */
+        .error-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #e0f0ff;
+            text-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+        }
+        
+        .error-message {
+            font-size: 1.2rem;
+            color: #a0c8ff;
+            margin-bottom: 50px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+        
+        /* 返回按钮 */
+        .action-buttons {
+            margin-bottom: 60px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, rgba(76, 201, 240, 0.2), rgba(67, 97, 238, 0.2));
+            border: 2px solid rgba(76, 201, 240, 0.5);
+            border-radius: 12px;
+            padding: 18px 40px;
+            color: #e0f0ff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            backdrop-filter: blur(10px);
+            min-width: 220px;
+            box-shadow: 0 8px 20px rgba(0, 20, 60, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(76, 201, 240, 0.4);
+            border-color: rgba(76, 201, 240, 0.8);
+            background: linear-gradient(135deg, rgba(76, 201, 240, 0.3), rgba(67, 97, 238, 0.3));
+        }
+        
+        /* 底部信息 */
+        footer {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .email {
+            font-size: 1.1rem;
+            color: #a0c8ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 25px;
+            background: rgba(20, 25, 50, 0.6);
+            border-radius: 50px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .email:hover {
+            background: rgba(30, 35, 60, 0.8);
+            border-color: rgba(100, 150, 255, 0.4);
+            transform: translateY(-3px);
+        }
+        
+        .email i {
+            color: #4cc9f0;
+        }
+        
+        .copyright {
+            font-size: 1rem;
+            color: #7890c0;
+            letter-spacing: 1px;
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-25px);
+            }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 10rem;
+                letter-spacing: 3px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .error-code {
+                font-size: 7rem;
+                letter-spacing: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-code">
+            <span>4</span>
+            <span>0</span>
+            <span>4</span>
+        </div>
+        
+        <h1 class="error-title">页面未找到</h1>
+        
+        <p class="error-message">
+            您访问的页面不存在或已被移除<br>
+            请检查URL地址是否正确，或返回首页浏览其他内容
+        </p>
+        
+        <div class="action-buttons">
+            <a href="index.html" class="btn">
+                <i class="fas fa-home"></i>
+                返回首页
+            </a>
+        </div>
+        
+        <footer>
+            <div class="contact-info">
+                <div class="email">
+                    <i class="fas fa-envelope"></i>
+                    zhanghongyi121816@163.com
+                </div>
+            </div>
+            <div class="copyright">
+                © 2026 zhy121816的主页
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

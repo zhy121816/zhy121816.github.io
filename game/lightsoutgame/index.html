@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>熄灯游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+        .light {
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+        .disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .win-text {
+            animation: bounce 1s infinite;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .brain-power-increase {
+            animation: fadeIn 0.5s ease-in;
+            position: absolute;
+            color: #8B5CF6;
+            font-weight: bold;
+            pointer-events: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .edit-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background: #8B5CF6;
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        #medalsContainer {
+            display: none;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-8">
+    <div id="researchModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold mb-4">进入研究模式</h3>
+            <input type="password" id="researchPassword" class="w-full px-4 py-2 border rounded-lg mb-4" placeholder="请输入研究模式密码">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeResearchModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">取消</button>
+                <button onclick="verifyResearchPassword()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-8 space-y-4">
+        <h1 class="text-3xl font-bold text-center text-gray-800">熄灯游戏</h1>
+        <div class="text-center space-y-1">
+            <div class="text-xl font-bold text-purple-600">当前脑力值：<span id="brainPower">0</span></div>
+        </div>
+        <div id="researchModeHint" class="hidden text-center text-sm text-yellow-600 font-semibold">研究模式下熄灯成功不加脑力值</div>
+        <div id="controls" class="flex gap-4 justify-center">
+            <select id="size" class="px-4 py-2 border rounded-lg"></select>
+            <button id="random" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">随机布局</button>
+            <button id="lightAll" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">全部亮起</button>
+            <button id="researchMode" class="px-4 py-2 bg-gradient-to-r from-gray-500 to-yellow-500 text-white rounded-lg hover:opacity-90">进入研究模式</button>
+            <button id="editMode" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 hidden">编辑模式</button>
+            <button id="viewMedals" class="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600">查看奖章</button>
+        </div>
+    </div>
+
+    <div id="editIndicator" class="edit-indicator hidden">编辑模式中</div>
+
+    <div id="gameContainer" class="flex flex-col items-center gap-4">
+        <div class="text-lg font-semibold text-gray-700 mb-2">点击次数：<span id="clickCount" class="text-blue-600">0</span></div>
+        <div id="board" class="grid gap-1 bg-gray-200 p-2 rounded-lg"></div>
+        <div id="winMessage" class="hidden">
+            <div class="text-2xl font-bold text-green-600 my-4 win-text">🎉 你赢了！🎉<br><span class="text-xl text-purple-600">获得脑力值 +<span id="reward"></span></span></div>
+        </div>
+        <button id="restart" class="hidden px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 text-xl">重新开始</button>
+        <div id="allOffMessage" class="hidden text-2xl font-bold text-red-600 my-4">灯全灭了！</div>
+        <div id="exitEditWarning" class="hidden text-2xl font-bold text-red-600 my-4">不能编辑成全灭棋盘！</div>
+    </div>
+
+    <!-- 游戏玩法说明 -->
+    <div id="gameInstructions" class="mt-8 max-w-2xl bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">游戏玩法说明</h2>
+        <ul class="space-y-3 text-gray-700">
+            <li class="flex items-start"><span class="text-blue-500 mr-2">•</span><span><strong>游戏目标：</strong>通过点击使所有格子变成灰色（熄灭状态）。</span></li>
+            <li class="flex items-start"><span class="text-blue-500 mr-2">•</span><span><strong>基本规则：</strong>点击一个格子时，该格子及其上、下、左、右相邻的格子都会改变状态（亮变灭，灭变亮）。</span></li>
+            <li class="flex items-start"><span class="text-blue-500 mr-2">•</span><span><strong>脑力值奖励：</strong></span></li>
+            <ul class="ml-6 space-y-2">
+                <li>3x3: +1 脑力值</li>
+                <li>4x4: +2 脑力值</li>
+                <li>5x5: +5 脑力值</li>
+                <li>6x6: +15 脑力值</li>
+                <li>7x7: +20 脑力值</li>
+                <li>8x8: +50 脑力值</li>
+                <li>9x9: +100 脑力值</li>
+                <li>10x10: +1000 脑力值</li>
+            </ul>
+        </ul>
+    </div>
+
+    <!-- 兑换系统 -->
+    <div class="mt-8 max-w-2xl bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">兑换奖章</h2>
+        <div class="flex flex-col mb-4">
+            <span>可用脑力值：<span id="exchangeBrainPowerDisplay">0</span></span>
+            <button id="exchangeReward1" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">初试身手奖章</button>
+            <button id="exchangeReward2" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">脑力高手奖章</button>
+            <button id="exchangeReward3" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">脑力大师奖章</button>
+        </div>
+        <div class="text-gray-700">
+            <p>初试身手奖章 - 所需脑力值: 20</p>
+            <p>脑力高手奖章 - 所需脑力值: 500</p>
+            <p>脑力大师奖章 - 所需脑力值: 2000</p>
+        </div>
+    </div>
+
+    <!-- 奖章展示区域 -->
+    <div id="medalsContainer">
+        <h2 class="text-2xl font-bold mb-4">获得的奖章</h2>
+        <div id="medalsList"></div>
+        <button id="backToGame" class="mt-4 px-4 py-2 bg-gray-800 text-white rounded-lg">返回游戏</button>
+    </div>
+
+    <script>
+        alert("这个游戏由AI生成");
+        class LightsOutGame {
+            constructor(size) {
+                this.size = size;
+                this.board = Array(size).fill().map(() => Array(size).fill(false));
+                this.clicks = 0;
+                this.brainPower = parseInt(localStorage.getItem('brainPower')) || 0;
+                this.medals = JSON.parse(localStorage.getItem('medals')) || {};
+                this.redeemedRewards = JSON.parse(localStorage.getItem('redeemedRewards')) || {};
+                this.isResearchMode = false; // 是否处于研究模式
+                this.isEditMode = false;     // 是否处于编辑模式
+                this.updateBrainPower();
+                this.createBoard();
+                this.updateClickCount();
+                this.updateSizeOptions();
+                this.updateExchangeDisplay();
+                this.updateMedalsDisplay();
+            }
+
+            createBoard() {
+                const board = document.getElementById('board');
+                board.style.gridTemplateColumns = `repeat(${this.size}, 1fr)`;
+                board.innerHTML = '';
+
+                // 重置 board 数组
+                this.board = Array(this.size).fill().map(() => Array(this.size).fill(false));
+
+                for (let i = 0; i < this.size; i++) {
+                    for (let j = 0; j < this.size; j++) {
+                        const light = document.createElement('div');
+                        light.className = 'light w-16 h-16 bg-gray-600 rounded-lg cursor-pointer';
+                        light.onclick = () => this.toggleLights(i, j);
+                        board.appendChild(light);
+                    }
+                }
+            }
+
+            // 兑换奖励的功能
+            exchangeReward(rewardId, requiredPower) {
+                if (this.redeemedRewards[rewardId]) {
+                    alert('该奖励已经被兑换过！');
+                    return;
+                }
+
+                if (this.brainPower >= requiredPower) {
+                    this.brainPower -= requiredPower; // 扣除相应的脑力值
+                    this.redeemedRewards[rewardId] = true; // 标记为已兑换
+                    localStorage.setItem('redeemedRewards', JSON.stringify(this.redeemedRewards)); // 保存状态
+                    alert(`奖励 ${rewardId} 已成功兑换！`);
+                    this.updateBrainPower(); // 更新脑力值显示
+                    this.updateMedals(rewardId); // 更新奖章
+                } else {
+                    alert('脑力值不足，无法兑换奖励！');
+                }
+            }
+
+            // 更新奖章
+            updateMedals(rewardId) {
+                this.medals[rewardId] = true; // 添加奖章
+                localStorage.setItem('medals', JSON.stringify(this.medals)); // 保存状态
+                this.updateMedalsDisplay(); // 更新显示
+            }
+
+            // 展示奖章
+            updateMedalsDisplay() {
+                const medalsList = document.getElementById('medalsList');
+                medalsList.innerHTML = ''; // 清空当前显示
+
+                for (const medal in this.medals) {
+                    if (this.medals[medal]) {
+                        const medalItem = document.createElement('div');
+                        medalItem.textContent = `获得了奖章：${medal}`;
+                        medalsList.appendChild(medalItem);
+                    }
+                }
+            }
+
+            toggleLights(row, col) {
+                // 编辑模式：只切换当前点击的灯，并检测是否变成全黑
+                if (this.isEditMode) {
+                    const previousState = JSON.parse(JSON.stringify(this.board));
+                    this.board[row][col] = !this.board[row][col];
+                    this.updateLight(row, col);
+
+                    // 保留全灭限制：若本次点击导致全灭，取消本次操作
+                    if (this.isAllLightsOff()) {
+                        alert("不可以改成全黑棋盘！");
+                        this.board = previousState;
+                        this.updateLight(row, col);
+                    }
+                    return;
+                }
+
+                // 普通模式：点击一个格子时，它和上下左右一起切换
+                this.clicks++;
+                this.updateClickCount();
+
+                const positions = [
+                    [row, col],
+                    [row - 1, col],
+                    [row + 1, col],
+                    [row, col - 1],
+                    [row, col + 1]
+                ];
+
+                positions.forEach(([r, c]) => {
+                    if (r >= 0 && r < this.size && c >= 0 && c < this.size) {
+                        this.board[r][c] = !this.board[r][c];
+                        this.updateLight(r, c);
+                    }
+                });
+
+                this.checkWin();
+            }
+
+            isAllLightsOff() {
+                return this.board.every(row => row.every(cell => !cell));
+            }
+
+            toggleEditMode() {
+                if (!this.isResearchMode) return;
+
+                if (!this.isEditMode) {
+                    this.isEditMode = true;
+                    this.board = Array(this.size).fill().map(() => Array(this.size).fill(false));
+                    for (let i = 0; i < this.size; i++) {
+                        for (let j = 0; j < this.size; j++) {
+                            this.updateLight(i, j);
+                        }
+                    }
+                    document.getElementById('editMode').textContent = "退出编辑";
+                    document.getElementById('editIndicator').classList.remove('hidden');
+                    document.getElementById('researchMode').disabled = true;
+                    document.getElementById('researchMode').classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    if (this.isAllLightsOff()) {
+                        document.getElementById('exitEditWarning').classList.remove('hidden');
+                        return;
+                    }
+                    this.isEditMode = false;
+                    document.getElementById('editMode').textContent = "编辑模式";
+                    document.getElementById('editIndicator').classList.add('hidden');
+                    document.getElementById('exitEditWarning').classList.add('hidden');
+                    document.getElementById('researchMode').disabled = false;
+                    document.getElementById('researchMode').classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            updateLight(row, col) {
+                const index = row * this.size + col;
+                const light = document.getElementById('board').children[index];
+                light.style.backgroundColor = this.board[row][col] ? '#FCD34D' : '#4B5563';
+            }
+
+            checkWin() {
+                const allOff = this.isAllLightsOff();
+                if (allOff) {
+                    if (this.isResearchMode) {
+                        document.getElementById('allOffMessage').classList.remove('hidden');
+                        document.getElementById('restart').classList.remove('hidden');
+                        document.getElementById('board').classList.add('disabled');
+                        document.getElementById('controls').classList.add('disabled');
+                    } else {
+                        const reward = this.getBrainPowerReward();
+                        this.brainPower += reward;
+                        this.updateBrainPower();
+                        this.showBrainPowerIncrease(reward);
+                        document.getElementById('board').classList.add('disabled');
+                        document.getElementById('controls').classList.add('disabled');
+                        document.getElementById('restart').classList.remove('hidden');
+                        document.getElementById('winMessage').classList.remove('hidden');
+                        document.getElementById('reward').textContent = reward;
+                    }
+                }
+            }
+
+            randomize() {
+                this.clicks = 0;
+                this.updateClickCount();
+
+                for (let i = 0; i < this.size; i++) {
+                    for (let j = 0; j < this.size; j++) {
+                        this.board[i][j] = false;
+                        this.updateLight(i, j);
+                    }
+                }
+
+                const minClicks = this.size;
+                const maxAdditionalClicks = this.size * this.size;
+                const totalClicks = minClicks + Math.floor(Math.random() * maxAdditionalClicks);
+                for (let i = 0; i < totalClicks; i++) {
+                    const row = Math.floor(Math.random() * this.size);
+                    const col = Math.floor(Math.random() * this.size);
+                    this.toggleRandomLights(row, col);
+                }
+
+                if (this.isAllLightsOff()) {
+                    const lightsToTurnOn = Math.floor(this.size * this.size / 3);
+                    for (let i = 0; i < lightsToTurnOn; i++) {
+                        const randomRow = Math.floor(Math.random() * this.size);
+                        const randomCol = Math.floor(Math.random() * this.size);
+                        if (!this.board[randomRow][randomCol]) {
+                            this.board[randomRow][randomCol] = true;
+                            this.updateLight(randomRow, randomCol);
+                        }
+                    }
+                }
+
+                document.getElementById('winMessage').classList.add('hidden');
+                document.getElementById('restart').classList.add('hidden');
+                document.getElementById('allOffMessage').classList.add('hidden');
+                document.getElementById('exitEditWarning').classList.add('hidden');
+                document.getElementById('board').classList.remove('disabled');
+                document.getElementById('controls').classList.remove('disabled');
+                this.updateExchangeDisplay(); // 更新兑换显示
+            }
+
+            toggleRandomLights(row, col) {
+                const positions = [
+                    [row, col],
+                    [row - 1, col],
+                    [row + 1, col],
+                    [row, col - 1],
+                    [row, col + 1]
+                ];
+                positions.forEach(([r, c]) => {
+                    if (r >= 0 && r < this.size && c >= 0 && c < this.size) {
+                        this.board[r][c] = !this.board[r][c];
+                        this.updateLight(r, c);
+                    }
+                });
+            }
+
+            lightAll() {
+                this.clicks = 0;
+                this.updateClickCount();
+                for (let i = 0; i < this.size; i++) {
+                    for (let j = 0; j < this.size; j++) {
+                        this.board[i][j] = true;
+                        this.updateLight(i, j);
+                    }
+                }
+                document.getElementById('winMessage').classList.add('hidden');
+                document.getElementById('restart').classList.add('hidden');
+                document.getElementById('allOffMessage').classList.add('hidden');
+                document.getElementById('exitEditWarning').classList.add('hidden');
+                document.getElementById('board').classList.remove('disabled');
+                document.getElementById('controls').classList.remove('disabled');
+            }
+
+            restart() {
+                document.getElementById('board').classList.remove('disabled');
+                document.getElementById('controls').classList.remove('disabled');
+                document.getElementById('restart').classList.add('hidden');
+                document.getElementById('winMessage').classList.add('hidden');
+                document.getElementById('allOffMessage').classList.add('hidden');
+                document.getElementById('exitEditWarning').classList.add('hidden');
+                this.clicks = 0;
+                this.updateClickCount();
+                this.board = Array(this.size).fill().map(() => Array(this.size).fill(false));
+                this.randomize();
+            }
+
+            enterResearchMode() {
+                this.isResearchMode = true;
+                this.isEditMode = false;
+                document.getElementById('researchModeHint').classList.remove('hidden');
+                this.size = 3;
+                this.updateSizeOptions();
+                this.createBoard();
+                this.randomize();
+                document.getElementById('editMode').classList.remove('hidden');
+                document.getElementById('researchMode').textContent = "退出研究模式";
+            }
+
+            exitResearchMode() {
+                this.isResearchMode = false;
+                this.isEditMode = false;
+                document.getElementById('researchModeHint').classList.add('hidden');
+                this.size = 3;
+                this.updateSizeOptions();
+                this.createBoard();
+                this.randomize();
+                document.getElementById('editMode').classList.add('hidden');
+                document.getElementById('researchMode').textContent = "进入研究模式";
+            }
+
+            showBrainPowerIncrease(reward) {
+                const element = document.createElement('div');
+                element.className = 'brain-power-increase';
+                element.textContent = `+${reward}`;
+                element.style.left = `${Math.random() * 200 + 100}px`;
+                element.style.top = `${Math.random() * 100 + 100}px`;
+                document.body.appendChild(element);
+
+                setTimeout(() => {
+                    element.style.opacity = '0';
+                    setTimeout(() => {
+                        document.body.removeChild(element);
+                    }, 500);
+                }, 1000);
+            }
+
+            getBrainPowerReward() {
+                const rewards = {
+                    3: 1,
+                    4: 2,
+                    5: 5,
+                    6: 15,
+                    7: 20,
+                    8: 50,
+                    9: 100,
+                    10: 1000
+                };
+                return rewards[this.size] || 0;
+            }
+
+            updateClickCount() {
+                document.getElementById('clickCount').textContent = this.clicks;
+            }
+
+            updateBrainPower() {
+                document.getElementById('brainPower').textContent = this.brainPower;
+                localStorage.setItem('brainPower', this.brainPower.toString());
+                this.updateExchangeDisplay(); // 更新兑换显示
+            }
+
+            updateSizeOptions() {
+                const sizeSelect = document.getElementById('size');
+                sizeSelect.innerHTML = '';
+                const maxSize = this.isResearchMode ? 30 : 10;
+                for (let i = 3; i <= maxSize; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = `${i}x${i}`;
+                    sizeSelect.appendChild(option);
+                }
+                sizeSelect.value = this.size;
+            }
+
+            updateExchangeDisplay() {
+                document.getElementById('exchangeBrainPowerDisplay').textContent = this.brainPower; 
+            }
+        }
+
+        // 实例化游戏
+        let game = new LightsOutGame(3);
+
+        document.getElementById('exchangeReward1').onclick = () => game.exchangeReward('初试身手', 20);
+        document.getElementById('exchangeReward2').onclick = () => game.exchangeReward('脑力高手', 500);
+        document.getElementById('exchangeReward3').onclick = () => game.exchangeReward('脑力大师', 2000);
+        
+        // 研究模式相关函数
+        function showResearchModal() {
+            document.getElementById('researchModal').style.display = 'block';
+            document.getElementById('researchPassword').value = '';
+        }
+
+        function closeResearchModal() {
+            document.getElementById('researchModal').style.display = 'none';
+        }
+
+        function verifyResearchPassword() {
+            const password = document.getElementById('researchPassword').value;
+            const encodedPassword = btoa(password); // 使用btoa()进行Base64编码
+
+            const correctEncodedPassword = "eGlkZW5nR2FtZV9MT0dS";
+            
+            if (encodedPassword === correctEncodedPassword) {
+                game.enterResearchMode();
+                closeResearchModal();
+            } else {
+                alert('密码错误！');
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 's') {
+                event.preventDefault();
+                alert('保存功能已被禁用。');
+            }
+        });
+
+        document.getElementById('size').onchange = (e) => {
+            const newSize = parseInt(e.target.value);
+            game.size = newSize;
+            game.createBoard();
+            game.randomize();
+        };
+
+        document.getElementById('random').onclick = () => game.randomize();
+        document.getElementById('lightAll').onclick = () => game.lightAll();
+        document.getElementById('restart').onclick = () => game.restart();
+        document.getElementById('researchMode').onclick = () => {
+            if (game.isResearchMode) {
+                if (!game.isEditMode) {
+                    game.exitResearchMode();
+                }
+            } else {
+                showResearchModal();
+            }
+        };
+        document.getElementById('editMode').onclick = () => game.toggleEditMode();
+
+        // 新增查看奖章的事件
+        document.getElementById('viewMedals').onclick = () => {
+            document.getElementById('medalsContainer').style.display = 'block';
+            document.getElementById('gameContainer').style.display = 'none';  // 隐藏游戏界面
+            document.getElementById('gameInstructions').style.display = 'none';  // 隐藏游戏玩法说明
+            document.getElementById('controls').style.display = 'none';  // 隐藏控制面板
+            document.getElementById('exchangeReward1').style.display = 'block'; // 保留兑换页面
+            document.getElementById('exchangeReward2').style.display = 'block'; // 保留兑换页面
+            document.getElementById('exchangeReward3').style.display = 'block'; // 保留兑换页面
+        };
+
+        // 返回游戏按钮
+        document.getElementById('backToGame').onclick = () => {
+            document.getElementById('medalsContainer').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'flex';
+            document.getElementById('gameInstructions').style.display = 'block';  // 恢复游戏玩法说明
+            document.getElementById('controls').style.display = 'flex';
+            document.getElementById('exchangeReward1').style.display = 'block'; // 确保兑换页面可见
+            document.getElementById('exchangeReward2').style.display = 'block'; // 确保兑换页面可见
+            document.getElementById('exchangeReward3').style.display = 'block'; // 确保兑换页面可见
+        };
+
+        // 初始化
+        game.randomize();
+    </script>
+</body>
+</html>
