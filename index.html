@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zhanghongyi121816的个人主页</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/index-style.css">
+</head>
+<body>
+    <!-- 背景切换器 -->
+    <div class="bg-switcher">
+        <div class="bg-switch-btn" id="bg-toggle-btn">
+            <i class="fas fa-image"></i>
+        </div>
+        
+        <div class="bg-options" id="bg-options">
+            <div class="bg-option active" data-bg="bg-default">
+                <div class="bg-preview" style="background-image: url('./image/background1.jpg');"></div>
+                <div class="bg-name">地球</div>
+            </div>
+            
+            <div class="bg-option" data-bg="bg-alternate1">
+                <div class="bg-preview" style="background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920');"></div>
+                <div class="bg-name">天安门</div>
+            </div>
+            
+            <div class="bg-option" data-bg="bg-alternate2">
+                <div class="bg-preview" style="background-image: url('./image/background3.jpg');"></div>
+                <div class="bg-name">CPU</div>
+            </div>
+            
+            <!-- 纯色背景选项 -->
+            <div class="bg-option" data-bg="solid-dark">
+                <div class="bg-preview" style="background: linear-gradient(135deg, #0a0f1e, #1a1f3e);"></div>
+                <div class="bg-name">深色渐变</div>
+            </div>
+            
+            <div class="bg-option" data-bg="solid-blue">
+                <div class="bg-preview" style="background: linear-gradient(135deg, #0f172a, #1e40af);"></div>
+                <div class="bg-name">蓝色渐变</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1 class="header-title">个人主页</h1>
+            <p class="header-subtitle">探索游戏世界、创新项目与技术文章</p>
+            <h2 style="color: #a0c8ff; margin-top: 10px;">张弘毅欢迎你</h2>
+        </header>
+        
+        <main class="sections-container">
+            <!-- 游戏栏目 -->
+            <section class="section games">
+                <h2 class="section-title"><i class="fas fa-gamepad"></i> 游戏</h2>
+                <div class="blocks-grid">
+                    <div class="block" onclick="location.href='./game/OItrainer/index.html'">
+                        <i class="fas fa-laptop-code block-icon"></i>  
+                        <div class="block-title">OI 教练模拟器</div>
+                        <div class="block-desc">OI系列</div>
+                    </div>
+                    <div class="block" onclick="location.href='./game/oi-remake-game/index.html'">
+                        <i class="fas fa-code block-icon"></i> 
+                        <div class="block-title">OI 重开模拟器（原版）</div>
+                        <div class="block-desc">OI系列</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 项目栏目 -->
+            <section class="section projects">
+                <h2 class="section-title"><i class="fas fa-code"></i> 项目</h2>
+                <div class="blocks-grid">
+                    <div class="block" onclick="location.href='./project/project1.html'">
+                        <i class="fas fa-robot block-icon"></i>
+                        <div class="block-title">C++高精度计算头文件</div>
+                        <div class="block-desc">未完成</div>
+                    </div>
+                    <div class="block disable">
+                        <i class="fas fa-chart-line block-icon"></i>
+                        <div class="block-title">暂时没有</div>
+                        <div class="block-desc">已锁定</div>
+                    </div>
+                    <div class="block disable">
+                        <i class="fas fa-mobile-alt block-icon"></i>
+                        <div class="block-title">暂时没有</div>
+                        <div class="block-desc">已锁定</div>
+                    </div>
+                    <div class="block disable">
+                        <i class="fas fa-shield-alt block-icon"></i>
+                        <div class="block-title">暂时没有</div>
+                        <div class="block-desc">已锁定</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 文章栏目 -->
+            <section class="section articles">
+                <h2 class="section-title"><i class="fas fa-newspaper"></i> 文章</h2>
+                <div class="blocks-grid">
+                    <div class="block disable">
+                        <i class="fas fa-microchip block-icon"></i>
+                        <div class="block-title">暂时没有</div>
+                        <div class="block-desc">已锁定</div>
+                    </div>
+                    <div class="block disable">
+                        <i class="fas fa-code-branch block-icon"></i>
+                        <div class="block-title">暂时没有</div>
+                        <div class="block-desc">已锁定</div>
+                    </div>
+                    <div class="block disable">
+                        <i class="fas fa-vr-cardboard block-icon"></i>
+                        <div class="block-title">暂时没有</div>
+                        <div class="block-desc">已锁定</div>
+                    </div>
+                    <div class="block disable">
+                        <i class="fas fa-lock block-icon"></i>
+                        <div class="block-title">暂时没有</div>
+                        <div class="block-desc">已锁定</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <div class="contact-info">
+                <div class="email">
+                    <i class="fas fa-envelope"></i>
+                    zhanghongyi121816@163.com
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2026 zhy121816的主页
+            </div>
+        </footer>
+    </div>
+
+    <script src="./js/index.js"></script>
+</body>
+</html>
