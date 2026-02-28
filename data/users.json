@@ -1,0 +1,20 @@
+[
+    {
+        "id": 1,
+        "username": "ban_test",
+        "password_hash": "$2y$10$q3Hm483UppR1tvpNlB14VeBHZV5EF7keHwlzk922oBFv1X\/5uMhAm",
+        "created_at": "2026-02-26 22:19"
+    },
+    {
+        "id": 2,
+        "username": "33",
+        "password_hash": "$2y$10$tb0DElHT7zD\/KQeFuLiqs.hVYWPnNRvDQ9mNDVbAObn8wFAV1kqNy",
+        "created_at": "2026-02-27 09:43"
+    },
+    {
+        "id": 3,
+        "username": "root",
+        "password_hash": "$2y$10$pahHMtldRB4z\/E1tdYjh2uYDwWQH4fyc6e\/4AcMB\/GCNxbXIjWqH6",
+        "created_at": "2026-02-27 20:37"
+    }
+]

@@ -1,0 +1,467 @@
+/* 文章/题解页面样式：先引入共用 layout，再写本页专用 */
+@import url("./layout.css");
+
+/* ========== 以下为文章页、题解页专用 ========== */
+
+/* 文章页：显示背景动画网格，但隐藏其他动画效果 */
+.background-animation {
+    display: block;  /* 显示网格 */
+    z-index: -1;     /* 放在底层 */
+}
+
+/* 隐藏背景动画的其他效果，只保留网格 */
+.background-animation::before,
+.background-animation::after {
+    display: none;
+}
+
+/* 文章容器恢复正常宽度，保持内容可读性 */
+.article-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1000px;    /* 恢复正常宽度 */
+    margin: 0 auto;       /* 重新居中对齐 */
+    padding: 40px 30px;   /* 恢复左右padding */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 返回主页按钮 */
+.back-home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--surface-solid);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    width: fit-content;
+}
+
+.back-home-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    transform: translateX(-5px);
+}
+
+
+/* 文章内容区域 */
+.article-wrapper {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 50px 60px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    margin-bottom: 40px;
+}
+
+.article-header {
+    margin-bottom: 40px;
+    padding-bottom: 30px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.article-title {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.article-meta {
+    display: flex;
+    gap: 20px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.article-date,
+.article-author {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.article-meta-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+}
+
+.article-meta-link:hover {
+    color: #fff;
+    text-shadow: 0 0 10px var(--glow-color);
+}
+
+/* 题解：难度徽章 & 算法标签 */
+.difficulty-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1;
+    user-select: none;
+}
+
+/* 入门：红色 */
+.difficulty-rumen {
+    background: rgba(255, 59, 48, 0.18);
+    color: #ff3b30;
+    border-color: rgba(255, 59, 48, 0.35);
+}
+
+/* 普及-：橙色 */
+.difficulty-puji-minus {
+    background: rgba(255, 149, 0, 0.18);
+    color: #ff9500;
+    border-color: rgba(255, 149, 0, 0.35);
+}
+
+/* 普及/提高-：黄色 */
+.difficulty-puji-tigao-minus {
+    background: rgba(255, 214, 10, 0.18);
+    color: #ffd60a;
+    border-color: rgba(255, 214, 10, 0.35);
+}
+
+/* 普及+/提高：绿色 */
+.difficulty-puji-plus-tigao {
+    background: rgba(52, 199, 89, 0.18);
+    color: #34c759;
+    border-color: rgba(52, 199, 89, 0.35);
+}
+
+/* 提高+ / 省选-：蓝色 */
+.difficulty-tigao-plus-shengxuan-minus {
+    background: rgba(10, 132, 255, 0.18);
+    color: #0a84ff;
+    border-color: rgba(10, 132, 255, 0.35);
+}
+
+/* 省选/NOI-：紫色 */
+.difficulty-shengxuan-noi-minus {
+    background: rgba(191, 90, 242, 0.18);
+    color: #bf5af2;
+    border-color: rgba(191, 90, 242, 0.35);
+}
+
+/* NOI/NOI+/CTSC：黑色 */
+.difficulty-noi-ctsc {
+    background: rgba(255, 255, 255, 0.06);
+    color: #000000;
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.solution-tags {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.solution-tags-label {
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+.article-content {
+    color: var(--text-secondary);
+    line-height: 1.9;
+    font-size: 1.1rem;
+}
+
+.article-content p {
+    margin-bottom: 20px;
+}
+
+.article-content h1 {
+    color: var(--primary-color);
+    font-size: 2.2rem;
+    margin-top: 45px;
+    margin-bottom: 22px;
+    font-weight: 650;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.article-content h2 {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.article-content h3 {
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.article-content ul,
+.article-content ol {
+    margin: 20px 0;
+    padding-left: 30px;
+    color: var(--text-secondary);
+}
+
+.article-content li {
+    margin-bottom: 10px;
+}
+
+.article-content code {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: var(--primary-color);
+}
+
+/* 让 strong 标签更明显 */
+.article-content strong {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.code-block-wrapper {
+    position: relative;
+    margin: 20px 0;
+}
+
+.article-content pre {
+    background: rgba(0, 212, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    margin: 0;
+}
+
+.article-content pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-secondary);
+}
+
+.copy-code-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+}
+
+.copy-code-btn:hover {
+    background: rgba(0, 212, 255, 0.2);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
+
+.copy-code-btn.copied {
+    background: rgba(0, 212, 255, 0.3);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.copy-code-btn i {
+    font-size: 0.9rem;
+}
+
+.copy-code-btn .copy-text {
+    font-weight: 500;
+}
+
+.article-content blockquote {
+    border-left: 4px solid var(--primary-color);
+    padding-left: 20px;
+    margin: 20px 0;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.article-content a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.article-content a:hover {
+    text-decoration: underline;
+    color: var(--secondary-color);
+}
+
+/* 文章导航按钮 */
+.article-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border-color);
+}
+
+.article-nav-prev,
+.article-nav-next {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.article-nav-prev {
+    justify-content: flex-start;
+}
+
+.article-nav-next {
+    justify-content: flex-end;
+    flex-direction: row-reverse;
+}
+
+.article-nav-prev:hover,
+.article-nav-next:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+    transform: translateY(-2px);
+    background: rgba(0, 212, 255, 0.05);
+}
+
+.article-nav-text {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.article-nav-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.article-nav-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.article-nav-prev:hover .article-nav-title,
+.article-nav-next:hover .article-nav-title {
+    color: var(--primary-color);
+}
+
+.article-nav-prev i,
+.article-nav-next i {
+    font-size: 20px;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.article-nav-prev:hover i {
+    transform: translateX(-3px);
+}
+
+.article-nav-next:hover i {
+    transform: translateX(3px);
+}
+
+/* 文章底部样式已在 layout.css 与 .footer 共用 */
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .article-container {
+        padding: 30px 20px;
+    }
+
+    .article-wrapper {
+        padding: 30px 25px;
+    }
+
+    .article-title {
+        font-size: 2rem;
+    }
+
+    .article-content {
+        font-size: 1rem;
+    }
+
+    .article-content h2 {
+        font-size: 1.5rem;
+    }
+
+    .article-content h3 {
+        font-size: 1.2rem;
+    }
+
+    .article-nav-menu {
+        gap: 10px;
+    }
+
+    .article-nav-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+
+    .article-footer::before {
+        width: 80%;
+    }
+
+    .article-navigation {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .article-nav-prev,
+    .article-nav-next {
+        width: 100%;
+    }
+
+    .article-nav-next {
+        flex-direction: row;
+    }
+}

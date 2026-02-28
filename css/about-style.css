@@ -1,0 +1,173 @@
+/* 关于页样式：先引入共用 layout，再写本页专用 */
+@import url("./layout.css");
+
+/* ========== 以下为关于页专用 ========== */
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.about-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 60px 40px;
+    flex: 1;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    margin-bottom: 40px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.back-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    transform: translateX(-5px);
+}
+
+.about-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.about-avatar {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 4px solid var(--primary-color);
+    object-fit: cover;
+    box-shadow: 0 0 40px var(--glow-color);
+    margin-bottom: 30px;
+}
+
+.about-name {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.about-title {
+    color: var(--text-secondary);
+    font-size: 1.3rem;
+    margin-bottom: 40px;
+}
+
+.about-content {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 28px;
+    padding: 80px 80px;
+    backdrop-filter: blur(10px);
+    margin-bottom: 50px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.about-section {
+    margin-bottom: 60px;
+}
+
+.about-section:last-child {
+    margin-bottom: 0;
+}
+
+.about-section h2 {
+    color: var(--primary-color);
+    font-size: 2.4rem;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.about-section p {
+    color: var(--text-secondary);
+    line-height: 2;
+    font-size: 1.35rem;
+    margin-bottom: 22px;
+}
+
+.about-section ul {
+    color: var(--text-secondary);
+    line-height: 1.9;
+    font-size: 1.2rem;
+    margin-left: 20px;
+    margin-bottom: 15px;
+}
+
+.about-section li {
+    margin-bottom: 10px;
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.skill-item {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.skill-item:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 212, 255, 0.2);
+}
+
+.skill-item h4 {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.skill-item p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .about-name {
+        font-size: 2.2rem;
+    }
+
+    .about-content {
+        padding: 50px 35px;
+    }
+
+    .about-section p {
+        font-size: 1.1rem;
+    }
+
+    .about-section ul {
+        font-size: 1.05rem;
+    }
+
+    .about-section h2 {
+        font-size: 1.6rem;
+    }
+
+    .skills-grid {
+        grid-template-columns: 1fr;
+    }
+}

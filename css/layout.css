@@ -1,0 +1,290 @@
+/* 全站共用：reset、变量、背景、底部、滚动条（首页/文章/关于等都会加载） */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #00d4ff;
+    --secondary-color: #0099cc;
+    --accent-color: #ff6b6b;
+    --bg-dark: #0a0e27;
+    --bg-darker: #050815;
+    --bg-accent: #0f1a3a;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b8c4;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(0, 212, 255, 0.2);
+    --glow-color: rgba(0, 212, 255, 0.5);
+    --text-on-accent: #050815;
+
+    /* 页面“面板/按钮/输入框”常用底色（深色主题） */
+    --surface-strong: rgba(5, 8, 25, 0.92);
+    --surface: rgba(10, 14, 39, 0.9);
+    --surface-soft: rgba(10, 14, 39, 0.3);
+    --surface-footer: rgba(10, 14, 39, 0.5);
+    --input-bg: rgba(3, 8, 30, 0.9);
+    --surface-solid: rgba(10, 14, 39, 0.95);
+    --glow-accent: rgba(255, 107, 107, 0.3);
+
+    /* 卡片封面图相关（文章卡片可选图片背景） */
+    --card-cover-image: none;
+    --card-cover-overlay: rgba(15, 23, 42, 0.65); /* 深色下稍微压暗一点 */
+}
+
+/* 白天模式：覆盖变量即可全站生效（只要页面使用这些变量） */
+html[data-theme="light"] {
+    /* 白纸为主，但加一点淡蓝/灰的层次，让页面不单调 */
+    --primary-color: #2563eb;      /* 稍深一点的蓝，用于标题/高亮 */
+    --secondary-color: #0ea5e9;
+    --accent-color: #e11d48;
+
+    --bg-dark: #f3f4f6;            /* 整体背景浅灰白，比纯白更柔和 */
+    --bg-darker: #e5e7eb;
+    --bg-accent: #e0f2fe;          /* 顶部背景渐变里的浅蓝 */
+
+    --text-primary: #111827;       /* 主文字接近纯黑 */
+    --text-secondary: #4b5563;     /* 次要文字深灰 */
+
+    --card-bg: #ffffff;            /* 卡片仍然是白纸 */
+    --border-color: #cbd5f5;       /* 稍带一点蓝味的边框 */
+    --glow-color: rgba(37, 99, 235, 0.18);
+
+    --surface-strong: #ffffff;
+    --surface: #ffffff;
+    --surface-soft: #f9fafb;
+    --surface-footer: #e5e7eb;
+    --input-bg: #ffffff;
+    --surface-solid: #ffffff;
+    --glow-accent: rgba(37, 99, 235, 0.16);
+    --text-on-accent: #0b1120;
+
+    /* 浅色主题下，用浅色蒙层提高文字可读性 */
+    --card-cover-overlay: rgba(255, 255, 255, 0.78);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* 背景动画 */
+.background-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 50%, var(--bg-accent) 100%);
+    overflow: hidden;
+    background-image:
+        linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+}
+
+.background-animation::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
+    top: -250px;
+    left: -250px;
+    animation: float 20s ease-in-out infinite;
+}
+
+.background-animation::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--glow-accent) 0%, transparent 70%);
+    bottom: -200px;
+    right: -200px;
+    animation: float 15s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    33% {
+        transform: translate(30px, -30px) rotate(120deg);
+    }
+    66% {
+        transform: translate(-20px, 20px) rotate(240deg);
+    }
+}
+
+/* 底部（首页 .footer、文章页 .article-footer 共用）扩展到屏幕所有边界 */
+.footer,
+.article-footer {
+    position: relative;
+    z-index: 1;
+    margin: 60px 0 0;     /* 移除底部margin */
+    padding: 50px 0 0;    /* 移除底部padding */
+    text-align: center;
+    background: var(--surface-footer);
+    backdrop-filter: blur(10px);
+}
+
+/* 使用伪元素扩展背景到屏幕所有边界 */
+.footer::after,
+.article-footer::after {
+    content: '';
+    position: absolute;
+    left: -100vw;
+    right: -100vw;
+    top: 0;
+    bottom: -100px;      /* 向下延伸100px */
+    background: inherit;
+    z-index: -1;
+}
+
+.footer::before,
+.article-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 1px;
+    background: var(--border-color);
+}
+
+/* 文章页底部在 flex 布局里需要 margin-top: auto */
+.article-footer {
+    margin-top: auto;
+    padding: 40px 20px 30px;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.contact-info {
+    margin-bottom: 10px;
+}
+
+.email-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 1rem;
+    padding: 10px 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 25px;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.email-link:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.email-link i {
+    transition: transform 0.3s ease;
+}
+
+.email-link:hover i {
+    transform: scale(1.2);
+}
+
+.copyright {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.icp-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+.icp-link:hover {
+    color: var(--primary-color);
+    text-shadow: 0 0 6px rgba(0, 212, 255, 0.8);
+}
+
+/* 滚动条样式（标准写法） */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-darker);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
+
+/* 全站主题切换按钮（右下角悬浮） */
+.theme-toggle {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 10002;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+}
+
+.theme-toggle:hover {
+    transform: translateY(-1px);
+    border-color: var(--primary-color);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+}
+
+.theme-toggle:active {
+    transform: translateY(0);
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-darker);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}

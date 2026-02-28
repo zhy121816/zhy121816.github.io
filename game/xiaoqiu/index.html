@@ -1,0 +1,595 @@
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>小球物理引擎（Canvas） - zhanghy16的主页</title>
+  <link rel="icon" type="image/x-icon" href="../../image/favicon.ico">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <div class="max-w-6xl mx-auto p-4 space-y-4">
+    <header class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+      <div>
+        <h1 class="text-xl font-semibold">小球物理引擎（重力 / 边界反弹 / 球-球碰撞 / 拖拽发射）</h1>
+        <p class="text-sm text-slate-300">操作：单击生成小球；拖拽小球并松开=“拉弓”发射；Shift+单击生成更大球；右键删除球。</p>
+      </div>
+      <div class="text-xs text-slate-300">
+        <div>性能提示：球数过多会变慢，可用“子步进”稳定碰撞。</div>
+      </div>
+    </header>
+
+    <section class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div class="lg:col-span-4">
+        <div class="rounded-xl border border-slate-800 bg-slate-900/40 overflow-hidden">
+          <canvas id="c" class="block w-full h-[70vh]"></canvas>
+        </div>
+        <div class="mt-2 flex flex-wrap gap-2 text-xs text-slate-300">
+          <span class="px-2 py-1 rounded bg-slate-900 border border-slate-800">空格：暂停/继续</span>
+          <span class="px-2 py-1 rounded bg-slate-900 border border-slate-800">R：重置</span>
+          <span class="px-2 py-1 rounded bg-slate-900 border border-slate-800">G：切换重力方向</span>
+          <span class="px-2 py-1 rounded bg-slate-900 border border-slate-800">C：清空</span>
+        </div>
+      </div>
+
+      <aside class="lg:col-span-1 space-y-3">
+        <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="font-semibold">参数</div>
+            <button id="btnAdd" class="text-xs px-2 py-1 rounded bg-slate-200 text-slate-900 hover:bg-white">+ 添加 10 个</button>
+          </div>
+
+          <label class="block text-sm">
+            <div class="flex items-center justify-between">
+              <span>重力</span><span id="vGravity" class="text-xs text-slate-300"></span>
+            </div>
+            <input id="gravity" type="range" min="0" max="2500" value="1200" class="w-full" />
+          </label>
+
+          <label class="block text-sm">
+            <div class="flex items-center justify-between">
+              <span>空气阻力（线性阻尼）</span><span id="vDamping" class="text-xs text-slate-300"></span>
+            </div>
+            <input id="damping" type="range" min="0" max="3" step="0.01" value="0.08" class="w-full" />
+          </label>
+
+          <label class="block text-sm">
+            <div class="flex items-center justify-between">
+              <span>反弹系数（边界）</span><span id="vRestitution" class="text-xs text-slate-300"></span>
+            </div>
+            <input id="restitution" type="range" min="0" max="1" step="0.01" value="0.9" class="w-full" />
+          </label>
+
+          <label class="block text-sm">
+            <div class="flex items-center justify-between">
+              <span>摩擦（边界切向）</span><span id="vFriction" class="text-xs text-slate-300"></span>
+            </div>
+            <input id="friction" type="range" min="0" max="1" step="0.01" value="0.02" class="w-full" />
+          </label>
+
+          <label class="block text-sm">
+            <div class="flex items-center justify-between">
+              <span>子步进（稳定性）</span><span id="vSubsteps" class="text-xs text-slate-300"></span>
+            </div>
+            <input id="substeps" type="range" min="1" max="12" step="1" value="5" class="w-full" />
+          </label>
+
+          <label class="block text-sm">
+            <div class="flex items-center justify-between">
+              <span>球-球反弹系数</span><span id="vBallRest" class="text-xs text-slate-300"></span>
+            </div>
+            <input id="ballRest" type="range" min="0" max="1" step="0.01" value="0.95" class="w-full" />
+          </label>
+
+          <label class="block text-sm">
+            <div class="flex items-center justify-between">
+              <span>碰撞次数（迭代）</span><span id="vIterations" class="text-xs text-slate-300"></span>
+            </div>
+            <input id="iterations" type="range" min="1" max="12" step="1" value="3" class="w-full" />
+          </label>
+        </div>
+
+        <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3 space-y-2">
+          <div class="font-semibold">状态</div>
+          <div class="text-xs text-slate-300 space-y-1">
+            <div>球数量：<span id="statN">0</span></div>
+            <div>FPS：<span id="statFps">0</span></div>
+            <div>暂停：<span id="statPause">否</span></div>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-3 space-y-2">
+          <div class="font-semibold">说明</div>
+          <ul class="text-xs text-slate-300 list-disc pl-4 space-y-1">
+            <li>用“位置修正 + 冲量”做球-球碰撞。</li>
+            <li>子步进与迭代越高越稳定，但更耗性能。</li>
+            <li>这是轻量 2D 引擎示例，便于继续扩展（约束/多边形/关节等）。</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+  </div>
+
+<script>
+(() => {
+  // ---------- Canvas / DPI ----------
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+
+  function resizeCanvas() {
+    const dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // draw in CSS pixels
+  }
+  window.addEventListener("resize", resizeCanvas);
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+
+  // ---------- Physics ----------
+  const world = {
+    balls: [],
+    gravity: { x: 0, y: 1200 }, // px/s^2
+    gravityMode: 0, // 0 down, 1 right, 2 up, 3 left
+    damping: 0.08, // linear damping coefficient
+    restitution: 0.9, // wall bounce
+    friction: 0.02, // wall tangential friction
+    ballRest: 0.95, // ball-ball restitution
+    substeps: 5,
+    iterations: 3,
+    paused: false
+  };
+
+  function massFromRadius(r) {
+    // 2D density approx; tweakable
+    const density = 0.02;
+    return Math.max(0.2, density * Math.PI * r * r);
+  }
+
+  function addBall(x, y, r = 14) {
+    const m = massFromRadius(r);
+    const ball = {
+      id: crypto?.randomUUID?.() || (Date.now() + "_" + Math.random()),
+      x, y,
+      vx: rand(-120, 120),
+      vy: rand(-50, 50),
+      r,
+      m,
+      invM: 1 / m,
+      color: `hsl(${Math.floor(rand(0, 360))} 90% 60%)`,
+    };
+    world.balls.push(ball);
+    return ball;
+  }
+
+  function clearBalls() { world.balls.length = 0; }
+
+  function reset() {
+    clearBalls();
+    const rect = canvas.getBoundingClientRect();
+    for (let i = 0; i < 18; i++) {
+      addBall(rand(60, rect.width - 60), rand(40, rect.height * 0.6), rand(10, 18));
+    }
+  }
+
+  // ----- Integration & collisions -----
+  function updateGravityVector() {
+    const g = parseFloat(ui.gravity.value);
+    if (world.gravityMode === 0) world.gravity = { x: 0, y: g };
+    if (world.gravityMode === 1) world.gravity = { x: g, y: 0 };
+    if (world.gravityMode === 2) world.gravity = { x: 0, y: -g };
+    if (world.gravityMode === 3) world.gravity = { x: -g, y: 0 };
+  }
+
+  function step(dt) {
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width, H = rect.height;
+
+    const sub = Math.max(1, Math.floor(world.substeps));
+    const h = dt / sub;
+
+    for (let s = 0; s < sub; s++) {
+      // integrate (semi-implicit Euler)
+      for (const b of world.balls) {
+        b.vx += world.gravity.x * h;
+        b.vy += world.gravity.y * h;
+
+        // linear damping: v *= exp(-k*dt)
+        const k = world.damping;
+        const decay = Math.exp(-k * h);
+        b.vx *= decay;
+        b.vy *= decay;
+
+        b.x += b.vx * h;
+        b.y += b.vy * h;
+      }
+
+      // wall collisions
+      for (const b of world.balls) {
+        // left
+        if (b.x - b.r < 0) {
+          b.x = b.r;
+          b.vx = Math.abs(b.vx) * world.restitution;
+          b.vy *= (1 - world.friction);
+        }
+        // right
+        if (b.x + b.r > W) {
+          b.x = W - b.r;
+          b.vx = -Math.abs(b.vx) * world.restitution;
+          b.vy *= (1 - world.friction);
+        }
+        // top
+        if (b.y - b.r < 0) {
+          b.y = b.r;
+          b.vy = Math.abs(b.vy) * world.restitution;
+          b.vx *= (1 - world.friction);
+        }
+        // bottom
+        if (b.y + b.r > H) {
+          b.y = H - b.r;
+          b.vy = -Math.abs(b.vy) * world.restitution;
+          b.vx *= (1 - world.friction);
+        }
+      }
+
+      // ball-ball collisions: positional correction + impulse
+      // multiple iterations improves stacking stability
+      const iters = Math.max(1, Math.floor(world.iterations));
+      for (let it = 0; it < iters; it++) {
+        const n = world.balls.length;
+        for (let i = 0; i < n; i++) {
+          for (let j = i + 1; j < n; j++) {
+            const a = world.balls[i], b = world.balls[j];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const r = a.r + b.r;
+            const d2 = dx*dx + dy*dy;
+            if (d2 >= r*r || d2 === 0) continue;
+
+            const d = Math.sqrt(d2);
+            const nx = dx / d, ny = dy / d;
+
+            // --- positional correction (prevent sinking) ---
+            const penetration = r - d;
+            const slop = 0.01; // small allowance
+            const percent = 0.8; // correction strength
+            const corr = Math.max(0, penetration - slop) * percent / (a.invM + b.invM);
+            a.x -= nx * corr * a.invM;
+            a.y -= ny * corr * a.invM;
+            b.x += nx * corr * b.invM;
+            b.y += ny * corr * b.invM;
+
+            // --- impulse (bounce) ---
+            const rvx = b.vx - a.vx;
+            const rvy = b.vy - a.vy;
+            const relVelN = rvx * nx + rvy * ny;
+            if (relVelN > 0) continue; // separating
+
+            const e = world.ballRest;
+            const jImp = -(1 + e) * relVelN / (a.invM + b.invM);
+
+            const ix = jImp * nx;
+            const iy = jImp * ny;
+
+            a.vx -= ix * a.invM;
+            a.vy -= iy * a.invM;
+            b.vx += ix * b.invM;
+            b.vy += iy * b.invM;
+
+            // tangential friction (simple Coulomb-like)
+            const tx = rvx - relVelN * nx;
+            const ty = rvy - relVelN * ny;
+            const tLen = Math.hypot(tx, ty) || 1;
+            const tnx = tx / tLen, tny = ty / tLen;
+
+            const relVelT = rvx * tnx + rvy * tny;
+            const mu = 0.02;
+            let jt = -relVelT / (a.invM + b.invM);
+            const maxJt = jImp * mu;
+            jt = clamp(jt, -maxJt, maxJt);
+
+            const fx = jt * tnx, fy = jt * tny;
+            a.vx -= fx * a.invM;
+            a.vy -= fy * a.invM;
+            b.vx += fx * b.invM;
+            b.vy += fy * b.invM;
+          }
+        }
+      }
+    }
+  }
+
+  // ---------- Rendering ----------
+  function draw() {
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width, H = rect.height;
+
+    // background
+    ctx.clearRect(0, 0, W, H);
+
+    // subtle grid
+    ctx.save();
+    ctx.globalAlpha = 0.15;
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1;
+    const step = 40;
+    for (let x = 0; x <= W; x += step) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y <= H; y += step) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    ctx.restore();
+
+    // balls
+    for (const b of world.balls) {
+      // shadow
+      ctx.beginPath();
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
+      ctx.ellipse(b.x + 4, b.y + 6, b.r * 0.95, b.r * 0.8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // ball
+      const g = ctx.createRadialGradient(b.x - b.r*0.35, b.y - b.r*0.35, b.r*0.2, b.x, b.y, b.r);
+      g.addColorStop(0, "rgba(255,255,255,0.9)");
+      g.addColorStop(0.18, b.color);
+      g.addColorStop(1, "rgba(0,0,0,0.25)");
+      ctx.beginPath();
+      ctx.fillStyle = g;
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // outline
+      ctx.strokeStyle = "rgba(255,255,255,0.25)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // drag indicator
+    if (input.dragging && input.dragBall) {
+      const b = input.dragBall;
+      ctx.save();
+      ctx.strokeStyle = "rgba(226,232,240,0.85)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(b.x, b.y);
+      ctx.lineTo(input.mouse.x, input.mouse.y);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(226,232,240,0.85)";
+      ctx.beginPath();
+      ctx.arc(input.mouse.x, input.mouse.y, 4, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // gravity arrow
+    ctx.save();
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = "rgba(148,163,184,0.9)";
+    ctx.strokeStyle = "rgba(148,163,184,0.9)";
+    ctx.lineWidth = 2;
+    const cx = 26, cy = 26;
+    const gx = world.gravity.x, gy = world.gravity.y;
+    const gl = Math.hypot(gx, gy) || 1;
+    const ax = gx / gl, ay = gy / gl;
+    const len = 18;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + ax * len, cy + ay * len);
+    ctx.stroke();
+    // arrow head
+    const hx = cx + ax * len, hy = cy + ay * len;
+    ctx.beginPath();
+    ctx.moveTo(hx, hy);
+    ctx.lineTo(hx - ax * 6 + (-ay) * 4, hy - ay * 6 + (ax) * 4);
+    ctx.lineTo(hx - ax * 6 + (ay) * 4,  hy - ay * 6 + (-ax) * 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // ---------- Input ----------
+  const input = {
+    mouse: { x: 0, y: 0 },
+    dragging: false,
+    dragBall: null,
+    dragOffset: { x: 0, y: 0 },
+    lastMouseDown: { x: 0, y: 0 }
+  };
+
+  function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function pickBall(x, y) {
+    for (let i = world.balls.length - 1; i >= 0; i--) {
+      const b = world.balls[i];
+      const dx = x - b.x, dy = y - b.y;
+      if (dx*dx + dy*dy <= b.r*b.r) return b;
+    }
+    return null;
+  }
+
+  canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  canvas.addEventListener("mousedown", (e) => {
+    const p = getMousePos(e);
+    input.mouse = p;
+    input.lastMouseDown = p;
+
+    if (e.button === 2) { // right click delete
+      const b = pickBall(p.x, p.y);
+      if (b) world.balls = world.balls.filter(x => x !== b);
+      return;
+    }
+
+    const b = pickBall(p.x, p.y);
+    if (b) {
+      input.dragging = true;
+      input.dragBall = b;
+      input.dragOffset.x = p.x - b.x;
+      input.dragOffset.y = p.y - b.y;
+      // while dragging, freeze velocity for stability
+      b.vx = 0; b.vy = 0;
+    } else {
+      const r = e.shiftKey ? rand(20, 34) : rand(10, 18);
+      addBall(p.x, p.y, r);
+    }
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    const p = getMousePos(e);
+    input.mouse = p;
+
+    if (input.dragging && input.dragBall) {
+      const b = input.dragBall;
+      // direct position set (kinematic drag)
+      b.x = p.x - input.dragOffset.x;
+      b.y = p.y - input.dragOffset.y;
+      b.vx = 0; b.vy = 0;
+    }
+  });
+
+  window.addEventListener("mouseup", (e) => {
+    if (!input.dragging || !input.dragBall) return;
+
+    const b = input.dragBall;
+    const p = input.mouse;
+
+    // slingshot: release velocity opposite drag vector
+    const dx = (b.x - p.x);
+    const dy = (b.y - p.y);
+    const strength = 7.0; // tune
+    b.vx = dx * strength;
+    b.vy = dy * strength;
+
+    input.dragging = false;
+    input.dragBall = null;
+  });
+
+  // ---------- UI ----------
+  const ui = {
+    gravity: document.getElementById("gravity"),
+    damping: document.getElementById("damping"),
+    restitution: document.getElementById("restitution"),
+    friction: document.getElementById("friction"),
+    substeps: document.getElementById("substeps"),
+    ballRest: document.getElementById("ballRest"),
+    iterations: document.getElementById("iterations"),
+    vGravity: document.getElementById("vGravity"),
+    vDamping: document.getElementById("vDamping"),
+    vRestitution: document.getElementById("vRestitution"),
+    vFriction: document.getElementById("vFriction"),
+    vSubsteps: document.getElementById("vSubsteps"),
+    vBallRest: document.getElementById("vBallRest"),
+    vIterations: document.getElementById("vIterations"),
+    statN: document.getElementById("statN"),
+    statFps: document.getElementById("statFps"),
+    statPause: document.getElementById("statPause"),
+    btnAdd: document.getElementById("btnAdd")
+  };
+
+  function syncUI() {
+    world.damping = parseFloat(ui.damping.value);
+    world.restitution = parseFloat(ui.restitution.value);
+    world.friction = parseFloat(ui.friction.value);
+    world.substeps = parseInt(ui.substeps.value, 10);
+    world.ballRest = parseFloat(ui.ballRest.value);
+    world.iterations = parseInt(ui.iterations.value, 10);
+    updateGravityVector();
+
+    ui.vGravity.textContent = `${Math.round(parseFloat(ui.gravity.value))} px/s²`;
+    ui.vDamping.textContent = world.damping.toFixed(2);
+    ui.vRestitution.textContent = world.restitution.toFixed(2);
+    ui.vFriction.textContent = world.friction.toFixed(2);
+    ui.vSubsteps.textContent = String(world.substeps);
+    ui.vBallRest.textContent = world.ballRest.toFixed(2);
+    ui.vIterations.textContent = String(world.iterations);
+  }
+
+  for (const el of [ui.gravity, ui.damping, ui.restitution, ui.friction, ui.substeps, ui.ballRest, ui.iterations]) {
+    el.addEventListener("input", syncUI);
+  }
+
+  ui.btnAdd.addEventListener("click", () => {
+    const rect = canvas.getBoundingClientRect();
+    for (let i = 0; i < 10; i++) {
+      addBall(rand(40, rect.width - 40), rand(40, rect.height - 120), rand(10, 18));
+    }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+      world.paused = !world.paused;
+      e.preventDefault();
+    }
+    if (e.key === "r" || e.key === "R") reset();
+    if (e.key === "c" || e.key === "C") clearBalls();
+    if (e.key === "g" || e.key === "G") {
+      world.gravityMode = (world.gravityMode + 1) % 4;
+      syncUI();
+    }
+  });
+
+  // ---------- Main loop ----------
+  let last = performance.now();
+  let fpsSmoothed = 60;
+
+  function loop(now) {
+    const dtRaw = (now - last) / 1000;
+    last = now;
+
+    // clamp dt to avoid huge jump after tab switch
+    const dt = clamp(dtRaw, 0, 1/20);
+
+    if (!world.paused) step(dt);
+    draw();
+
+    // stats
+    const fps = 30;
+    fpsSmoothed = fpsSmoothed * 0.9 + fps * 0.1;
+    ui.statN.textContent = String(world.balls.length);
+    ui.statFps.textContent = String(Math.round(fpsSmoothed));
+    ui.statPause.textContent = world.paused ? "是" : "否";
+
+    requestAnimationFrame(loop);
+  }
+
+  // init
+  resizeCanvas();
+  syncUI();
+  reset();
+  requestAnimationFrame(loop);
+})();
+</script>
+<script>window.parent.postMessage({ action: "ready" }, "*"); 
+ 
+window.console = new Proxy(console, {
+  get(target, prop) {
+    if (['log', 'warn', 'error'].includes(prop)) {
+      return new Proxy(target[prop], {
+        apply(fn, thisArg, args) {
+          fn.apply(thisArg, args);
+          window.parent.postMessage({ action: 'console', 
+            type: prop, 
+            args: args.map((arg) => {
+              try {
+                return JSON.stringify(arg).replace(/^["']|["']$/g, '');
+              } catch (e) {
+                return arg;
+              }
+            }) 
+          }, '*');
+        }
+      });
+    }
+    return target[prop];
+  }
+});
+</script></body>
+</html>
